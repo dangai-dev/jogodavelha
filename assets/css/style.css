@@ -1,14 +1,177 @@
+@import url('https://fonts.googleapis.com/css?family=Press+Start+2P');
+body {
+    font-family: 'Press Start 2P', cursive;
+    background: #000;
+    color: #fff;
+}
 .board {
-    display: flex;
-    flex-wrap: wrap;
+    font-size: 8em;
+    text-align: center;
+}
+
+.field-border-b {
+    border-bottom: 3px dotted #fff;
+}
+
+.field-border-r {
+    border-right: 3px dotted #fff;
 }
 
 .field {
-    flex: 1 0 25%;
-    margin: 5px;
-    height: 100px;
-    background-color: blue;
-    width: 50px;
-    height: 50px;
-    border: 1px solid black;
+    position: relative;
+    flex: 1 0 31%;
+    width: 100px;
+    height: 200px;
+}
+
+.game-difficulty {
+    color: gold;
+    font-size: 2.5em;
+}
+
+.d-none {
+    display: none !important;
+}
+
+.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step {
+    background: #000 !important;
+}
+
+.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step {
+    background: #dbe5e8 !important;
+    color: #fff;
+}
+
+.swal2-progress-steps .swal2-progress-step.swal2-active-progress-step~.swal2-progress-step-line {
+    background: #dbe5e8 !important;
+}
+
+.swal2-progress-steps .swal2-progress-step {
+    background: #000 !important;
+}
+
+.swal2-progress-steps .swal2-progress-step-line {
+    background: #000 !important;
+}
+
+.board div:hover {
+    cursor: pointer;
+}
+
+.disable-click {
+    pointer-events: none;
+}
+
+.diagonal-line-lr {
+    width: 10px;
+    height: 140%;
+    background: #ff0000;
+    -webkit-transform: rotate(-57deg);
+    -ms-transform: rotate(-57deg);
+    transform: rotate(-57deg);
+    margin: auto;
+    position: absolute;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+    top: -11%;
+}
+
+.diagonal-line-rl {
+    width: 10px;
+    height: 140%;
+    background: #ff0000;
+    -webkit-transform: rotate(57deg);
+    -ms-transform: rotate(57deg);
+    transform: rotate(57deg);
+    margin: auto;
+    position: absolute;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+    top: -11%;
+}
+
+.vertical-line-center {
+    width: 10px;
+    height: 82%;
+    background: #ff0000;
+    -webkit-transform: rotate(0deg); /* Chrome, Opera */
+    -ms-transform: rotate(0deg); /* IE */
+    transform: rotate(0deg); /* Padrão */
+    position: absolute;
+    left: 50%;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.vertical-line-left {
+    width: 10px;
+    height: 82%;
+    background: #ff0000;
+    -webkit-transform: rotate(0deg); /* Chrome, Opera */
+    -ms-transform: rotate(0deg); /* IE */
+    transform: rotate(0deg); /* Padrão */
+    position: absolute;
+    left: 18%;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.vertical-line-right {
+    width: 10px;
+    height: 82%;
+    background: #ff0000;
+    -webkit-transform: rotate(0deg); /* Chrome, Opera */
+    -ms-transform: rotate(0deg); /* IE */
+    transform: rotate(0deg); /* Padrão */
+    position: absolute;
+    left: 82%;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.horizontal-line-top {
+    width: 10px;
+    height: 120%;
+    background: #ff0000;
+    -webkit-transform: rotate(90deg); /* Chrome, Opera */
+    -ms-transform: rotate(90deg); /* IE */
+    transform: rotate(90deg); /* Padrão */
+    position: absolute;
+    top: -28%;
+    border: 1px solid #ff0000;
+    border-radius: 3px;
+    z-index: 1000;
+}
+
+.horizontal-line-center {
+    width: 10px;
+    height: 120%;
+    background: #ff0000;
+    -webkit-transform: rotate(90deg); /* Chrome, Opera */
+    -ms-transform: rotate(90deg); /* IE */
+    transform: rotate(90deg); /* Padrão */
+    position: absolute;
+    top: 0;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
+}
+
+.horizontal-line-bottom {
+    width: 10px;
+    height: 120%;
+    background: #ff0000;
+    -webkit-transform: rotate(90deg); /* Chrome, Opera */
+    -ms-transform: rotate(90deg); /* IE */
+    transform: rotate(90deg); /* Padrão */
+    position: absolute;
+    top: 25%;
+    border: 1px solid #ff0000;
+    border-radius: 10px;
+    z-index: 1000;
 }
