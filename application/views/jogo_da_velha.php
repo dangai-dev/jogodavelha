@@ -118,10 +118,11 @@
                         $('#game-board').removeClass('d-none');
                         if(player.isPlayerTurn()) {
                             playerCursorEvents('enable');
-                        } else {
-                            $("div[position='" + game.makeMove() + "']").text(game.getPlayerOpponentMark());
-                            playerCursorEvents('enable');
+
+                            return;
                         }
+                        $("div[position='" + game.makeMove() + "']").text(game.getPlayerOpponentMark());
+                        playerCursorEvents('enable');
                     }
                 });
             }
@@ -149,8 +150,6 @@
 
         let playerMark = player.getMark(game.marks);
         obj.text(playerMark);
-        game.pushMark(objPosition, playerMark);
-        game.searchWinner();
 
         if (!game.allFieldsFilled() && !Object.keys(game.result).length) {
             Swal.fire({
@@ -164,17 +163,21 @@
                 allowOutsideClick: false,
             }).then((result) => {
                 if (result.value) {
+                    game.pushMark(objPosition, playerMark);
+                    game.searchWinner();
+                    game.searchDraw();
                     game.nextTurn();
                     if (!player.isPlayerTurn()) {
                         playerCursorEvents('disable');
                     }
                     let opponentMovement = game.makeMove();
                     game.searchWinner();
+                    game.searchDraw();
                     $("div[position='" + opponentMovement + "']").text(game.getPlayerOpponentMark());
                     playerCursorEvents('enable');
                 }
                 if (result.dismiss) {
-                    game.cleanMark(objPosition);
+                    // game.cleanMark(objPosition);
                     obj.text('');
                 }
             });
@@ -188,6 +191,7 @@
 
     endGameModal = () => {
         Swal.fire({
+            position: 'bottom',
             text: game.result.message,
             confirmButtonText: 'jogar novamente!',
             customClass: {confirmButton: 'btn btn-dark mr-2'},
@@ -196,8 +200,7 @@
             allowOutsideClick: false,
         }).then((result) => {
             if (result.value) {
-                dispatchSettingsMenu();
-                clearBoard();
+                location.reload();
             }
         });
     };
@@ -310,7 +313,7 @@
 
     Game.prototype.makeMove = function() {
         if (1 === parseInt(this.difficulty)) {
-            let position = this.generateRandomPosition();
+            let position = this.generateRandomPosition();5
             while (!this.availablePosition(position)){
                 position = this.generateRandomPosition();
             }
@@ -345,17 +348,20 @@
         if (!Object.keys(this.result).length){
             let counterKeys = Object.keys(counter);
             for (i = 0; i < counterKeys.length; i++) {
-                if (counter[counterKeys[i]] === 3) {
-                    console.log('winner: {x:' + counter.x + 'y:' + counter.o + '}');
-                    this.result = {type: 'winner', winner: counterKeys[i], position: conditions, message: 'Vencedor: ' + counterKeys[i]}
-                    endGameModal();
+                if (counter[counterKeys[i]] !== 3) {
+                    continue;
                 }
-            }
-
-            if(this.allFieldsFilled() && 0 === Object.keys(this.result).length){
-                this.result = {type: 'draw', message: 'Empate!'}
+                console.log('winner: {x:' + counter.x + 'y:' + counter.o + '}');
+                this.result = {type: 'winner', winner: counterKeys[i], position: conditions, message: 'Vencedor: ' + counterKeys[i]};
                 endGameModal();
             }
+        }
+    };
+
+    Game.prototype.searchDraw = function(){
+        if(this.allFieldsFilled() && 0 === Object.keys(this.result).length){
+            this.result = {type: 'draw', message: 'Empate!'};
+            endGameModal();
         }
     };
 
