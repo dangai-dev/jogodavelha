@@ -167,26 +167,25 @@
                     game.searchWinner();
                     game.searchDraw();
                     game.nextTurn();
-                    if (!player.isPlayerTurn()) {
-                        playerCursorEvents('disable');
+                    if (game.result.){
+
                     }
-                    let opponentMovement = game.makeMove();
-                    game.searchWinner();
-                    game.searchDraw();
-                    $("div[position='" + opponentMovement + "']").text(game.getPlayerOpponentMark());
-                    playerCursorEvents('enable');
+                    if (!game.allFieldsFilled() && !Object.keys(game.result).length) {
+                        if (!player.isPlayerTurn()) {
+                            playerCursorEvents('disable');
+                        }
+                        let opponentMovement = game.makeMove();
+                        game.searchWinner();
+                        game.searchDraw();
+                        $("div[position='" + opponentMovement + "']").text(game.getPlayerOpponentMark());
+                        playerCursorEvents('enable');
+                    }
                 }
                 if (result.dismiss) {
-                    // game.cleanMark(objPosition);
                     obj.text('');
                 }
             });
-
-            return;
         }
-
-        // console.log(game.result);
-        // endGameModal();
     };
 
     endGameModal = () => {
@@ -351,7 +350,6 @@
                 if (counter[counterKeys[i]] !== 3) {
                     continue;
                 }
-                console.log('winner: {x:' + counter.x + 'y:' + counter.o + '}');
                 this.result = {type: 'winner', winner: counterKeys[i], position: conditions, message: 'Vencedor: ' + counterKeys[i]};
                 endGameModal();
             }
