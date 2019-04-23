@@ -164,20 +164,25 @@
             }).then((result) => {
                 if (result.value) {
                     game.pushMark(objPosition, playerMark);
+                    game.setBoardState();
                     game.searchWinner();
                     game.searchDraw();
                     game.nextTurn();
-                    if (game.result.){
-
+                    if ('undefined' !== typeof(game.result.class)) {
+                        $('#winner-line').addClass(game.result.class);
                     }
                     if (!game.allFieldsFilled() && !Object.keys(game.result).length) {
                         if (!player.isPlayerTurn()) {
                             playerCursorEvents('disable');
                         }
                         let opponentMovement = game.makeMove();
+                        game.setBoardState();
                         game.searchWinner();
                         game.searchDraw();
                         $("div[position='" + opponentMovement + "']").text(game.getPlayerOpponentMark());
+                        if ('undefined' !== typeof(game.result.class)) {
+                            $('#winner-line').addClass(game.result.class);
+                        }
                         playerCursorEvents('enable');
                     }
                 }
@@ -226,8 +231,8 @@
         this.turn = game.starterPlayer === this.getMark(game.marks) ? 'odd' : 'pair';
     };
 
-    Player.prototype.getMark = function(marks){
-        return marks[this.mark];
+    Player.prototype.getMark = function(){
+        return game.marks[this.mark];
     };
 
     Player.prototype.isPlayerTurn = function() {
@@ -240,16 +245,18 @@
         this.starterPlayer  = this.marks[Math.round(Math.random())];
         this.playerOpponentMarkId = parseInt(gameSettings.mark) === 0 ? 1 : 0;
         this.board = [[[], [], []], [[], [], []], [[], [], []]];
+        this.boardState = [];
         this.turn = 1;
+        this.currentTurn = 1;
         this.victoryConditions = [
-            {positions: ['0-0', '1-1', '2-2'], line: 'diagonal-line-lr'},
-            {positions: ['0-2', '1-1', '2-0'], line: 'diagonal-line-lr'},
-            {positions: ['0-0', '1-0', '2-0'], line: 'vertical-line-left'},
-            {positions: ['0-1', '1-1', '2-1'], line: 'vertical-line-center'},
-            {positions: ['0-2', '1-2', '2-2'], line: 'vertical-line-right'},
-            {positions: ['0-0', '0-1', '0-2'], line: 'horizontal-line-top'},
-            {positions: ['1-0', '1-1', '1-2'], line: 'horizontal-line-center'},
-            {positions: ['2-0', '2-1', '2-2'], line: 'horizontal-line-bottom'},
+            {positions: ['0-0', '1-1', '2-2'], resultClass: 'diagonal-line-lr'},
+            {positions: ['0-2', '1-1', '2-0'], resultClass: 'diagonal-line-rl'},
+            {positions: ['0-0', '1-0', '2-0'], resultClass: 'vertical-line-left'},
+            {positions: ['0-1', '1-1', '2-1'], resultClass: 'vertical-line-center'},
+            {positions: ['0-2', '1-2', '2-2'], resultClass: 'vertical-line-right'},
+            {positions: ['0-0', '0-1', '0-2'], resultClass: 'horizontal-line-top'},
+            {positions: ['1-0', '1-1', '1-2'], resultClass: 'horizontal-line-center'},
+            {positions: ['2-0', '2-1', '2-2'], resultClass: 'horizontal-line-bottom'},
         ];
         this.result = {};
     };
@@ -279,7 +286,7 @@
         let axisY = 3;
         let endOfGame = true;
         for (x=0; x < axisX; x++){
-            for (y=0; y < axisY; y++){
+            for (y=0;y < axisY;y++){
                 if (this.board[x][y].length === 0){
                     endOfGame = false;
                     break;
@@ -312,24 +319,28 @@
 
     Game.prototype.makeMove = function() {
         if (1 === parseInt(this.difficulty)) {
-            let position = this.generateRandomPosition();5
+            let position = this.generateRandomPosition();
             while (!this.availablePosition(position)){
                 position = this.generateRandomPosition();
             }
 
             this.pushMark(position, this.getPlayerOpponentMark());
-            this.nextTurn();
+            if (!this.allFieldsFilled()) {
+                this.nextTurn();
+            }
+
+            this.boardState = this.returnFields('unavailable');
 
             return position.x.toString() + '-' + position.y.toString();
         }
     };
 
-    Game.prototype.searchWinner = function(conditions = null) {
+    Game.prototype.searchWinner = function(conditions = null, resultClass = null) {
         let counter = {x: 0, o:0};
         conditions = conditions || this.victoryConditions;
         conditions.forEach(function(condition){
             if ('object' === typeof(condition) && !Array.isArray(condition)){
-                game.searchWinner(condition.positions);
+                game.searchWinner(condition.positions, condition.resultClass);
             }
             let position = game.parsePosition(condition);
             let positionKeys = Object.keys(position);
@@ -350,17 +361,109 @@
                 if (counter[counterKeys[i]] !== 3) {
                     continue;
                 }
-                this.result = {type: 'winner', winner: counterKeys[i], position: conditions, message: 'Vencedor: ' + counterKeys[i]};
+                this.result = {
+                    type: 'winner',
+                    winner: counterKeys[i],
+                    position: conditions,
+                    message: 'Vencedor: ' + counterKeys[i],
+                    class: resultClass,
+                    turn: this.turn
+                };
                 endGameModal();
             }
         }
     };
 
+    Game.prototype.parseToString = function(x, y) {
+        if ('number' === typeof(x) && 'number' === typeof(y)) {
+            return x.toString() + '-' + y.toString();
+        }
+        return false;
+    };
+
+    //bugs.1 = Não tá colocando as opções de empate
+    Game.prototype.minimax = function(availableFields = null, minimaxPositions = []) {
+        availableFields = availableFields || this.returnFields('available');
+        minimaxPositions = minimaxPositions;
+        if (!this.allFieldsFilled() && !Object.keys(game.result).length && availableFields.length) {
+            availableFields.forEach(function (position) {
+                position = game.parsePosition(position);
+                game.board[position.x][position.y].push(game.getMarkOfCurrentPlayerTurn());
+                game.searchWinner();
+                game.searchDraw();
+                if (Object.keys(game.result).length) {
+                    if ('winner' === game.result.type) {
+                        minimaxPositions.push({
+                            position: game.parseToString(position.x, position.y),
+                            winner: (game.starterPlayer === game.getMarkOfCurrentPlayerTurn() ? 1 : -1),
+                            turn: game.turn,
+                        });
+                    } else if ('draw' === game.result.type) {
+                        minimaxPositions.push({
+                            position: game.parseToString(position.x, position.y),
+                            winner: 0,
+                            turn: game.turn,
+                        });
+                    }
+                }
+                game.nextTurn();
+                availableFields.shift();
+                console.log(game.board);
+                game.minimax(availableFields, minimaxPositions);
+            });
+        }else{
+            this.board = this.boardState;
+            this.turn = this.currentTurn;
+            this.result = {};
+            this.minimax(availableFields, minimaxPositions);
+        }
+
+        return minimaxPositions;
+    };
+
+    Game.prototype.getMarkOfCurrentPlayerTurn = function() {
+        return player.isPlayerTurn() ? player.getMark() : this.getPlayerOpponentMark();
+    };
+
+    Game.prototype.returnFields = function(type = null){
+        let boardLength = this.board.length;
+        let availableFields  = [];
+        let unavailableFields = [];
+        for(x=0;x<boardLength;x++){
+            for(y=0;y<boardLength;y++){
+                let position = x.toString() + '-' + y.toString();
+                if (!this.board[x][y].length){
+                    availableFields.push(position);
+                    continue;
+                }
+                unavailableFields.push({position: position, symbol: this.board[x][y][0]});
+            }
+        }
+
+        return 'available' === type ? availableFields : unavailableFields;
+    };
+
     Game.prototype.searchDraw = function(){
         if(this.allFieldsFilled() && 0 === Object.keys(this.result).length){
-            this.result = {type: 'draw', message: 'Empate!'};
+            this.result = {
+                type: 'draw',
+                message: 'Empate!',
+                turn: this.turn,
+            };
             endGameModal();
         }
+    };
+
+    Game.prototype.setBoardState = function(){
+      let unavailablePositions = this.returnFields('unavailable');
+      let newBoard = [[[], [], []], [[], [], []], [[], [], []]];
+      unavailablePositions.forEach(function(obj){
+          let position = game.parsePosition(obj.position);
+          newBoard[position.x][position.y].push(obj.symbol);
+      });
+
+      this.boardState = newBoard;
+      this.currentTurn = this.turn;
     };
 
     GameMenu = function(){};
